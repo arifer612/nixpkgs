@@ -1,5 +1,6 @@
 ((nil
-  . ((magit-refresh-buffers . nil)))
+  . ((magit-refresh-buffers . nil)
+     (transient-values-file . "./.transient-values.el")))
  (magit-status-mode
   . ((eval . (mapcar 'magit-disable-section-inserter
                      (list #'magit-insert-tags-header
