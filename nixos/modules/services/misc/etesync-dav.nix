@@ -92,16 +92,20 @@ in
         DynamicUser = true;
         StateDirectory = (lib.strings.removePrefix "/var/lib/" cfg.dataDir);
         ExecStart = "${cfg.package}/bin/etesync-dav";
-        ExecStartPre = lib.mkIf (cfg.sslCertificate != null || cfg.sslCertificateKey != null) (
-          pkgs.writers.writeBash "etesync-dav-copy-keys" ''
+        ExecStartPre = [
+          # Generate the htpaswd file for etesync-dav if missing, explicitly required (https://github.com/etesync/etesync-dav/blob/f7ea58328f446732a5fb49742e0d0b5b5155cc47/etesync_dav/config.py#L33C1-L33C50)
+          "${pkgs.coreutils}/bin/touch ${cfg.dataDir}/htpaswd"
+        ]
+        ++ lib.lists.optionals (cfg.sslCertificate != null || cfg.sslCertificateKey != null) [
+          (pkgs.writers.writeBash "etesync-dav-copy-keys" ''
             ${lib.optionalString (cfg.sslCertificate != null) ''
               cp ${toString cfg.sslCertificate} ${cfg.dataDir}/etesync.crt
             ''}
             ${lib.optionalString (cfg.sslCertificateKey != null) ''
               cp ${toString cfg.sslCertificateKey} ${cfg.dataDir}/etesync.key
             ''}
-          ''
-        );
+          '')
+        ];
         Restart = "on-failure";
         RestartSec = "30min 1s";
       };
